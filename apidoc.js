@@ -337,7 +337,7 @@ function Apidoc(title, main_div_selector, data) {
             '</div>'
         ))
 
-        $main.find('#enpoint_url').attr('value', self.endpoint_url);
+        $main.find('#endpoint_url').attr('value', self.endpoint_url);
 
         $.each(self.methods, function (name, method) {
             var method_id = name.replace('.', '-')
