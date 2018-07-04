@@ -1,0 +1,184 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
+          integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+            integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"
+            integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.rawgit.com/heureka/json-rpc-apidoc/ffb5cb8aa19ba89d61c956767c07d781442f3b23/apidoc.js"></script>
+    <style>
+        pre {  margin-bottom: 0;  white-space: pre-wrap;  max-height: 80%;  }
+        pre .hint {  color: #999;  }
+        textarea {  font-family: monospace;  }
+    </style>
+    <script>
+        var api = {
+            // endpoint_url is used to send requests with `Try it` functionality
+            "endpoint_url": "https://foo.bar/api",
+
+
+            "types": {  // define your custom types here, the property name = name of the type
+                "Foo": {
+                    "properties": { // `Foo` has the following properties
+                        "id": {
+                            "type": "integer",        // type can be any string - if it is not your defined type,
+                                                      // it will be printed AS-IS.
+                            "example": 669,           // value to use in example tab
+                            "description": "Foo ID"   // comment what the property is and what it contains
+                        },
+                        "name": {
+                            "type": "string",
+                            "example": "Slafoo",
+                            "description": "Foo name"
+                        },
+                        "slug": {
+                            "type": "string",
+                            "example": "slafoo",
+                            "description": "Foo slug"
+                        },
+                        "url": {
+                            "type": "string",
+                            "example": "https://foo.bar/foos/slafoo",
+                            "description": "URL of Foo page"
+                        }
+                    }
+                },
+                "DetailedFoo": {
+                    "extends": "Foo", // DetailedFoo extends Foo, so it will copy all properties from Foo and extend
+                                      // with properties defined lower
+                    "properties": {
+                        "parent": {
+                            "type": ["Foo", "null"], // use array of types if there are more options
+                            "example": {  // you can use an object or array for example too. If example is not given
+                                          // here, examples defined in Foo type would be used.
+                                "id": 654,
+                                "name": "Kufoo",
+                                "slug": "kufoo",
+                                "url": "https://foo.bar/foos/slafoo"
+                            },
+                            "description": "Info about parent Foo, null if this is a root Foo"
+                        },
+                        "children": {
+                            "type": "Foo[]", // Brackets at end of type name signify it is an array of the type.
+                            "description": "List of children Foos"
+                        },
+                        "images": {
+                            "type": "Image[]",
+                            "description": "List of images in Foo gallery"
+                        }
+                    }
+                },
+                "Image": {
+                    "properties": {
+                        "thumbnail": {
+                            "type": "string",
+                            "example": "http://foo.bar/images/123-sm.jpeg",
+                            "description": "URL of thumbnail"
+                        },
+                        "big": {
+                            "type": "string",
+                            "example": "http://foo.bar/images/123-big.jpeg",
+                            "description": "URL of big image used screens"
+                        }
+                    }
+                },
+
+                // Response bodies
+                "FooIndex": {
+                    "properties": {
+                        "categories": {
+                            "type": "Foo[]",
+                            "description": "List of all visible foos"
+                        },
+                        "count": {
+                            "type": "integer",
+                            "example": 2819,
+                            "description": "Count of all visible foos"
+                        }
+                    }
+                },
+                "FooDetail": {
+                    "properties": {
+                        "category": {
+                            "type": "DetailedFoo",
+                            "description": "Foo details"
+                        }
+                    }
+                },
+
+                // Request params
+                "Language": {
+                    // type with `values` instead of `properties` is an Enum - only listed values (of any type) are
+                    // allowed in the place of Enum.
+                    "values": ["cz", "sk"],
+                    "example": "cz"
+                },
+                "CommonParams": {
+                    "properties": {
+                        "language": {
+                            "type": "Language",
+                            "optional": true, // Set optional to true to show that such property is optional
+                            "description": "Use data for this language version"
+                        },
+                        "access_key": {
+                            "type": "string",
+                            "example": "<your assigned access key>",
+                            "description": "Your assigned access key used for authentication"
+                        }
+                    }
+                },
+                "FooGetParams": {
+                    "extends": "CommonParams",
+                    "properties": {
+                        "id": {
+                            "type": ["integer", "string"],
+                            "example": "blue_foo",
+                            "description": "Foo ID or slug"
+                        }
+                    }
+                }
+            },
+
+            // List of custom errors that methods can raise
+            "errors": {
+                "NotAuthenticated": {
+                    "description": "When 'access_key' is missing from params, or is not valid.",
+                    "message": "Missing or invalid access key.",
+                    "code": -401
+                },
+                "NotFound": {
+                    "description": "When requested item is not found.",
+                    "message": "Foo #25 not found.",
+                    "code": -420
+                }
+            },
+
+            // List of JSON-RPC methods provided by the API
+            "methods": {
+                "foo.index": {
+                    "params": "CommonParams", // type (or types) that signifies params required by the method
+                    "result": "FooIndex",     // type (or types) of result that the method returns
+                    "description": "Returns list of all visible foos.", // description of the method
+                    "errors": ["NotAuthenticated"]  // list of custom errors that the method is expected to return
+                },
+                "foo.get": {
+                    "params": "FooGetParams",
+                    "result": "FooDetail",
+                    "description": "Get detailed info about a single foo.",
+                    "errors": ["NotAuthenticated", "NotFound"]
+                }
+            }
+        };
+
+        new Apidoc('Foo API Documentation', '#main', api);
+    </script>
+</head>
+<body>
+    <div class="container" id="main"></div>
+</body>
+</html>
