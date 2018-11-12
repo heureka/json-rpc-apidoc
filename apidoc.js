@@ -5,48 +5,49 @@ function Apidoc(title, main_div_selector, data) {
     self.methods = data.methods;
     self.errors = data.errors;
     self.endpoint_url = data.endpoint_url;
+    self.notes = data.notes;
     self.type_id = 0;
     self.main_div_selector = main_div_selector;
     self.title = title;
 
     // build example jsonrpc request for `method_name` and `type` as params
     self.json_rpc_request = function (method_name, type) {
-        var output = ""
+        var output = "";
 
         output += '{\n';
         output += '    <strong>"jsonrpc"</strong>: "2.0",\n';
         output += '    <strong>"id"</strong>: 1,\n';
         output += '    <strong>"method"</strong>: "' + method_name + '",\n';
         output += '    <strong>"params"</strong>: ' + self.type_example(type, 4) + '\n';
-        output += '}'
+        output += '}';
 
         return output
-    }
+    };
 
     // build example jsonrpc response with `type` as result
     self.json_rpc_response = function (type) {
-        var output = ""
+        var output = "";
 
         output += '{\n';
         output += '    <strong>"jsonrpc"</strong>: "2.0",\n';
         output += '    <strong>"id"</strong>: 1,\n';
         output += '    <strong>"result"</strong>: ' + self.type_example(type, 4) + '\n';
-        output += '}'
+        output += '}';
 
         return output
-    }
+    };
 
     // format JSON value for <pre> output
     self.display_value = function (value, indent) {
-        indent = indent || 0
+        indent = indent || 0;
 
         var indents = " ".repeat(indent);
-        var o = ""
+        var o = "";
 
         if (value instanceof Array) {
             o += "[\n";
             self.leach(value, function (key, val, is_last) {
-                o += indents + '    ' + self.display_value(val, indent + 4)
+                o += indents + '    ' + self.display_value(val, indent + 4);
                 o += is_last ? '\n' : ',\n';
             });
             o += indents + ']';
@@ -54,7 +55,7 @@ function Apidoc(title, main_div_selector, data) {
         } else if (value instanceof Object) {
             o += "{\n";
             self.leach(value, function (key, val, is_last) {
-                o += indents + '    <strong>"' + key + '"</strong>: ' + self.display_value(val, indent + 4)
+                o += indents + '    <strong>"' + key + '"</strong>: ' + self.display_value(val, indent + 4);
                 o += is_last ? '\n' : ',\n';
             });
             o += indents + '}';
@@ -62,12 +63,12 @@ function Apidoc(title, main_div_selector, data) {
         } else {
             return self.esc(JSON.stringify(value));
         }
-    }
+    };
 
     // htmlescape `value`
     self.esc = function (value) {
         return $("<div>").text(value).html();
-    }
+    };
 
     // call `func` with (key, value, is_last) params for each item in `collection`
     self.leach = function (collection, func) {
@@ -81,11 +82,11 @@ function Apidoc(title, main_div_selector, data) {
         for (var i = 0; i < props.length; i++) {
             func(props[i], collection[props[i]], i === props.length - 1);
         }
-    }
+    };
 
     // build type description used for Structure tabs
     self.type_description = function (type_name, indent) {
-        indent = indent || 0
+        indent = indent || 0;
 
         var output = "";
         var indents = " ".repeat(indent);
@@ -110,9 +111,9 @@ function Apidoc(title, main_div_selector, data) {
         } else {
             if (self.types.hasOwnProperty(type_name)) {
                 // if type_name is defined, print a clickable badge and list of properties (for object) or values (for enum)
-                var type = self.types[type_name]
+                var type = self.types[type_name];
 
-                self.type_id++
+                self.type_id++;
 
                 output += '<button type="button" class="badge badge-primary btn mr-1" onclick="$(\'#type-' + self.type_id + '\').toggle(0)">' + self.esc(type_name) + "</button>";
                 output += '<span id="type-' + self.type_id + '" style="' + ((indent > 0) ? 'display:none' : '') + '">';
@@ -122,8 +123,8 @@ function Apidoc(title, main_div_selector, data) {
                     self.leach(type['properties'], function (property_name, property, is_last) {
                         output += indents + '    <span class="hint">// ' + property['description'] + '</span>\n';
                         output += indents + '    <strong>"' + property_name + '"</strong>: ';
-                        output += self.type_description(property['type'], indent + 4)
-                        output += (property['optional'] ? ' (optional)' : '')
+                        output += self.type_description(property['type'], indent + 4);
+                        output += (property['optional'] ? ' (optional)' : '');
                         output += (is_last ? '' : ',') + '\n';
                     });
 
@@ -139,7 +140,7 @@ function Apidoc(title, main_div_selector, data) {
         }
 
         return output;
-    }
+    };
 
     // Build json example used for `Example` and `Try it` tabs.
     self.type_example = function (type_name, indent) {
@@ -160,7 +161,7 @@ function Apidoc(title, main_div_selector, data) {
             output += indents + "]";
         } else {
             if (self.types.hasOwnProperty(type_name)) {
-                var type = self.types[type_name]
+                var type = self.types[type_name];
 
                 if (type['properties']) {
                     // if type has properties, list example for each property
@@ -188,11 +189,11 @@ function Apidoc(title, main_div_selector, data) {
         }
 
         return output;
-    }
+    };
 
     // Make error examples for Errors tab.
     self.error_descriptions = function (error_names) {
-        var output = ""
+        var output = "";
 
         $.each(error_names, function (i, error_name) {
             var error = self.errors[error_name];
@@ -207,12 +208,12 @@ function Apidoc(title, main_div_selector, data) {
                     'message': error['message'],
                     'code': error['code']
                 }
-            }, 0)
+            }, 0);
             output += '\n';
-        })
+        });
 
         return output
-    }
+    };
 
     // builds form for sending `json` to endpoint
     self.try_form = function (method_id, json) {
@@ -220,9 +221,9 @@ function Apidoc(title, main_div_selector, data) {
             '<div class="form-group"><label for="exampleFormControlTextarea1">Request body:</label>' +
             '<textarea class="form-control" id="exampleFormControlTextarea1" rows="10"></textarea></div>' +
             '<button type="submit" class="btn btn-primary">Send</button>' +
-            '</form>')
+            '</form>');
 
-        var $textarea = $form.find('textarea').val(json)
+        var $textarea = $form.find('textarea').val(json);
 
         $form.submit(function () {
             var $response_pre = $('#response-' + method_id + '-try pre');
@@ -243,15 +244,15 @@ function Apidoc(title, main_div_selector, data) {
             });
 
             return false;
-        })
+        });
 
         return $form
-    }
+    };
 
     // make div for request section of `method_name`
     self.request = function (method_name, method_id, type_name) {
-        var $div = $('<div class="mb-3">')
-        $div.append("<h2>Request</h2>")
+        var $div = $('<div class="mb-3">');
+        $div.append("<h2>Request</h2>");
         $div.append(
             $('<ul class="nav nav-pills mb-3">')
                 .append($('<li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#request-' + method_id + '-structure">Structure</a></li>'))
@@ -268,12 +269,12 @@ function Apidoc(title, main_div_selector, data) {
         );
 
         return $div;
-    }
+    };
 
     // make div for response section with result of `type_name`
     self.response = function (method_id, type_name, error_names) {
-        var $div = $('<div class="mb-3" id="response-' + method_id + '">')
-        $div.append("<h2>Response</h2>")
+        var $div = $('<div class="mb-3" id="response-' + method_id + '">');
+        $div.append("<h2>Response</h2>");
         $div.append(
             $('<ul class="nav nav-pills mb-3">')
                 .append($('<li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#response-' + method_id + '-structure">Structure</a></li>'))
@@ -290,15 +291,15 @@ function Apidoc(title, main_div_selector, data) {
         );
 
         return $div
-    }
+    };
 
     // process type inheritance
     do {
-        var changed = false
+        var changed = false;
 
         $.each(self.types, function (name, type) {
             if (type.hasOwnProperty('extends')) {
-                var properties = {}
+                var properties = {};
                 if (self.types[type['extends']].hasOwnProperty('extends')) {
                     return;
                 }
@@ -324,6 +325,24 @@ function Apidoc(title, main_div_selector, data) {
                 .append($('<a class="navbar-brand" href="#">').text(self.title))
         );
 
+        if (self.notes) {
+            var $notes = $('<div id="notes">');
+
+            $.each(self.notes, function (i, note) {
+                var $content = $('<div class="card mb-3">');
+                if (typeof note === "string") {
+                    $content.append($('<div class="card-body">').html(note))
+                } else {
+                    if (note.title) $content.append($('<div class="card-header">').html(note.title));
+                    if (note.text) $content.append($('<div class="card-body">').html(note.text));
+                }
+
+                $notes.append($content);
+            });
+
+            $main.append($notes);
+        }
+
         $main.append($(
             '<div class="card mb-3 p-3">' +
             '    <form class="mb-0">' +
@@ -335,12 +354,12 @@ function Apidoc(title, main_div_selector, data) {
             '        </div>' +
             '    </form>' +
             '</div>'
-        ))
+        ));
 
         $main.find('#endpoint_url').attr('value', self.endpoint_url);
 
         $.each(self.methods, function (name, method) {
-            var method_id = name.replace('.', '-')
+            var method_id = name.replace('.', '-');
             $main.append(
                 $('<div class="card mb-3">')
                     .append(
