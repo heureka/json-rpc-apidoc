@@ -10,7 +10,7 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"
             integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T"
             crossorigin="anonymous"></script>
-    <script src="https://cdn.rawgit.com/heureka/json-rpc-apidoc/ffb5cb8aa19ba89d61c956767c07d781442f3b23/apidoc.js"></script>
+    <script src="apidoc.js"></script>
     <style>
         pre {  margin-bottom: 0;  white-space: pre-wrap;  max-height: 80%;  }
         pre .hint {  color: #999;  }
@@ -20,6 +20,14 @@
         var api = {
             // endpoint_url is used to send requests with `Try it` functionality
             "endpoint_url": "https://foo.bar/api",
+
+            "notes": [
+                {
+                    "title": "Latest changes",
+                    "text": "<h4>2018-01-01</h4><p>Added <code>foo.get</code> method.</p>"
+                },
+                "<span class='badge badge-warning'>Note</span> Example values represent general type and format of values occuring in given fields. They may not correspond to the content of whole request or response."
+            ],
 
 
             "types": {  // define your custom types here, the property name = name of the type
